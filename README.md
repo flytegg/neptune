@@ -62,35 +62,33 @@ If you struggle with anything, there is a working example in the test folder.
 
 ## Installation
 
-Maven
-```
-<repository>
-    <id>jitpack.io</id>
-    <url>https://jitpack.io</url>
-repository>
-```
-```
+Maven  
+```xml
+<repositories>
+	<repository>
+                <id>jitpack.io</id>
+                <url>https://jitpack.io</url>
+        </repository>
+</repositories>
+```  
+```xml
 <dependency>
-    <groupId>com.github.sttephen</groupId>
-    <artifactId>neptune</artifactId>
-    <version>1.0</version>
-<dependency>
+        <groupId>com.github.sttephen</groupId>
+        <artifactId>neptune</artifactId>
+        <version>1.0</version>
+</dependency>
 ```
 
 Gradle
-```
-allprojects {
-	repositories {
-		...
-		maven { url 'https://jitpack.io' }
-	}
+```kt
+repositories {
+        maven("https://jitpack.io")
 }
-```
-```
+        
 dependencies {
-        implementation 'com.github.sttephen:neptune:1.0'
+        implementation("com.github.sttephen:neptune:1.0")
 }
-```
+```  
 
 ## Contributing
 
