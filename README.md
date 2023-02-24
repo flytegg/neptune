@@ -97,7 +97,7 @@ Contributions are always welcome. Please open a pull request and try to maintain
 
 ## Authors
 
-This framework was made for the team at [Virtual Ventures](https://virtualventures.io), but I decided to release it in case anyone found any use from it.
+This framework was made for the team at [Flyte](https://flyte.gg), but I decided to release it in case anyone found any use from it.
 
 
 
