@@ -14,11 +14,11 @@ Neptune.start(jda, this);
 Slash commands can take up to an hour to update globally. If you'd prefer to update a specific guild (which is instant), start Neptune like this instead:
 
 ```java
-Neptune.start(jda, guild, this);
+Neptune.start(jda, this, guild);
 ```
 Or for multiple guilds:
 ```java
-Neptune.start(jda, new Guild[]{guild1, guild2}, this);
+Neptune.start(jda, this, guild1, guild2);
 ```
 
 Below is a working example of how to register a slash command. Use the @Command annotation and specify the command name, description and the required permissions.

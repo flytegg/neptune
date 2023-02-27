@@ -14,7 +14,7 @@ public class MyBot {
                 .build()
                 .awaitReady();
 
-        Neptune.start(jda, jda.getGuildById("GUILD"), this);
+        Neptune.start(jda, this, jda.getGuildById("GUILD"));
     }
 
     @Instantiate
