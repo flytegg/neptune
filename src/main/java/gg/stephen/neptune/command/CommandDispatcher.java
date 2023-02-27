@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class CommandDispatcher {
 
-    public CommandDispatcher(JDA jda, Guild[] guilds, Object clazz, CommandManager manager) throws InstantiationException, IllegalAccessException, InvocationTargetException {
+    public CommandDispatcher(JDA jda, Object clazz, CommandManager manager, Guild... guilds) throws InstantiationException, IllegalAccessException, InvocationTargetException {
         if (guilds != null) {
             for (Guild guild : guilds) {
                 for (net.dv8tion.jda.api.interactions.commands.Command command : guild.retrieveCommands().complete()) {

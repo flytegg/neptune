@@ -12,22 +12,20 @@ public class Neptune {
     private static JDA jda;
     private static CommandManager manager;
 
-    private Neptune(JDA jda, Guild[] guilds, Object clazz) {
+    private Neptune(JDA jda, Object clazz, Guild... guilds) {
         this.jda = jda;
         jda.addEventListener(manager = new CommandManager());
         try {
-            new CommandDispatcher(jda, guilds, clazz, manager);
+            new CommandDispatcher(jda, clazz, manager, guilds);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException x) {
             System.out.println("[Neptune] Error registering commands. Did you read the README.md?");
             x.printStackTrace();
         }
     }
 
-    public static Neptune start(JDA jda, Object clazz) { return new Neptune(jda, null, clazz); }
+    public static Neptune start(JDA jda, Object clazz) { return new Neptune(jda, clazz); }
 
-    public static Neptune start(JDA jda, Guild guild, Object clazz) { return new Neptune(jda, new Guild[]{guild}, clazz); }
-
-    public static Neptune start(JDA jda, Guild[] guilds, Object clazz) { return new Neptune(jda, guilds, clazz); }
+    public static Neptune start(JDA jda, Object clazz, Guild... guilds) { return new Neptune(jda, clazz, guilds); }
 
     public static void terminate() {
         jda.removeEventListener(manager);
