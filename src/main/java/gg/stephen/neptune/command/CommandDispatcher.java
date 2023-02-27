@@ -4,6 +4,7 @@ import gg.stephen.neptune.annotation.Command;
 import gg.stephen.neptune.annotation.Inject;
 import gg.stephen.neptune.annotation.Instantiate;
 import gg.stephen.neptune.util.ArgumentConverter;
+import gg.stephen.neptune.util.ClassFinder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
@@ -16,6 +17,7 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -26,7 +28,7 @@ import java.util.Set;
 
 public class CommandDispatcher {
 
-    public CommandDispatcher(JDA jda, Object clazz, CommandManager manager, Guild... guilds) throws InstantiationException, IllegalAccessException, InvocationTargetException {
+    public CommandDispatcher(JDA jda, Object clazz, CommandManager manager, Guild... guilds) throws InstantiationException, IllegalAccessException, InvocationTargetException, IOException, ClassNotFoundException {
         if (guilds != null) {
             for (Guild guild : guilds) {
                 for (net.dv8tion.jda.api.interactions.commands.Command command : guild.retrieveCommands().complete()) {
@@ -52,12 +54,7 @@ public class CommandDispatcher {
             }
         }
 
-        Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .setScanners(new SubTypesScanner(false), new ResourcesScanner())
-                .setUrls(ClasspathHelper.forClassLoader(classLoadersList.toArray(new ClassLoader[0])))
-                .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(classType.getPackage().getName()))));
-
-        Set<Class<?>> classes = reflections.getSubTypesOf(Object.class);
+        Class[] classes = ClassFinder.getClasses(classType.getPackage().getName());
         for (Class<?> foundClass : classes) {
             Object instance = foundClass.getName().equals(clazz.getClass().getName()) ? clazz : null;
             for (Method method : foundClass.getMethods()) {
@@ -83,12 +80,25 @@ public class CommandDispatcher {
                     }
                 }
             }
+
+            for (Field field : foundClass.getDeclaredFields()) {
+                if (instance == null && field.isAnnotationPresent(Inject.class)) {
+                    instance = foundClass.newInstance();
+                }
+            }
+
             if (instance != null) {
                 for (Field field : instance.getClass().getDeclaredFields()) {
                     if (field.isAnnotationPresent(Inject.class)) {
+                        System.out.println("injected " + field.getName() + " into " + instance.getClass().getSimpleName());
                         field.setAccessible(true);
                         field.set(instance, toInject.get(field.getName()));
                     }
+                }
+
+                if (instance.getClass().getSuperclass().getName().equals("net.dv8tion.jda.api.hooks.ListenerAdapter")) {
+                    jda.addEventListener(instance);
+                    System.out.println("added " + instance.getClass().getSimpleName() + " as an EventListener");
                 }
             }
         }

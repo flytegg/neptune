@@ -5,6 +5,7 @@ import gg.stephen.neptune.command.CommandManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 public class Neptune {
@@ -17,7 +18,7 @@ public class Neptune {
         jda.addEventListener(manager = new CommandManager());
         try {
             new CommandDispatcher(jda, clazz, manager, guilds);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException x) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | IOException | ClassNotFoundException x) {
             System.out.println("[Neptune] Error registering commands. Did you read the README.md?");
             x.printStackTrace();
         }

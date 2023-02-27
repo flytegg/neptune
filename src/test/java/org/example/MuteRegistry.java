@@ -8,4 +8,8 @@ public class MuteRegistry {
         // MUTE USER HERE
     }
 
+    public boolean isMuted(User user) {
+        return true;
+    }
+
 }
