@@ -18,7 +18,7 @@ Neptune.start(jda, this, guild);
 ```
 Or for multiple guilds:
 ```java
-Neptune.start(jda, this, guild1, guild2);
+Neptune.start(jda, this, guild1, guild2 ...);
 ```
 
 Below is a working example of how to register a slash command. Use the @Command annotation and specify the command name, description and the required permissions.
