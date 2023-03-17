@@ -75,7 +75,7 @@ Maven
 <dependency>
         <groupId>com.github.sttephen</groupId>
         <artifactId>neptune</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
 </dependency>
 ```
 
@@ -86,7 +86,7 @@ repositories {
 }
         
 dependencies {
-        implementation("com.github.sttephen:neptune:1.0")
+        implementation("com.github.sttephen:neptune:1.1")
 }
 ```  
 
