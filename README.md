@@ -95,7 +95,7 @@ repositories {
 }
         
 dependencies {
-        implementation("com.github.sttephen:neptune:1.1")
+        implementation("com.github.sttephen:neptune:1.2")
 }
 ```  
 
