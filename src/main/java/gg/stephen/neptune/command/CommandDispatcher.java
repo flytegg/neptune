@@ -71,8 +71,12 @@ public class CommandDispatcher {
                 .forPackages(packageName)
                 .setScanners(new SubTypesScanner(false), new ResourcesScanner())
         );
-        Set<Class<?>> objects = reflections.getSubTypesOf(Object.class);
-        Set<Class<? extends ListenerAdapter>> listeners = reflections.getSubTypesOf(ListenerAdapter.class);
+        Set<Class<?>> objects = reflections.getSubTypesOf(Object.class).stream()
+                .filter(aClass -> aClass.getPackage().getName().startsWith(packageName))
+                .collect(Collectors.toSet());
+        Set<Class<? extends ListenerAdapter>> listeners = reflections.getSubTypesOf(ListenerAdapter.class).stream()
+                .filter(aClass -> aClass.getPackage().getName().startsWith(packageName))
+                .collect(Collectors.toSet());
 
         LOGGER.debug("Found " + objects.size() + " objects.");
         LOGGER.debug("Found " + listeners.size() + " listeners.");
