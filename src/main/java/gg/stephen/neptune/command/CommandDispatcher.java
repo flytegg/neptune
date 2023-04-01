@@ -6,6 +6,7 @@ import gg.stephen.neptune.annotation.Instantiate;
 import gg.stephen.neptune.util.ArgumentConverter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
@@ -70,13 +71,15 @@ public class CommandDispatcher {
                 .forPackages(packageName)
                 .setScanners(new SubTypesScanner(false), new ResourcesScanner())
         );
-        Set<Class<?>> classes = reflections.getSubTypesOf(Object.class).stream()
-                .filter(aClass -> aClass.getPackage().getName().startsWith(packageName))
-                .collect(Collectors.toSet());
+        Set<Class<?>> objects = reflections.getSubTypesOf(Object.class);
+        Set<Class<? extends ListenerAdapter>> listeners = reflections.getSubTypesOf(ListenerAdapter.class);
 
-        LOGGER.debug("Found " + toInject.size() + " classes.");
+        LOGGER.debug("Found " + objects.size() + " objects.");
+        LOGGER.debug("Found " + listeners.size() + " listeners.");
 
-        for (Class<?> foundClass : classes) {
+        objects.addAll(listeners);
+
+        for (Class<?> foundClass : objects) {
             Object instance = foundClass.getName().equals(clazz.getClass().getName()) ? clazz : null;
             for (Method method : foundClass.getMethods()) {
                 if (method.isAnnotationPresent(Command.class)) {
