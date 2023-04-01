@@ -22,9 +22,17 @@ public class CommandMapping {
             this.required = required;
         }
 
-        public String getName() { return name; }
-        public Class<?> getType() { return type; }
-        public boolean isRequired() { return required; }
+        public String getName() {
+            return name;
+        }
+
+        public Class<?> getType() {
+            return type;
+        }
+
+        public boolean isRequired() {
+            return required;
+        }
 
     }
 
@@ -43,8 +51,16 @@ public class CommandMapping {
         }
     }
 
-    public Method getMethod() { return method; }
-    public NamedParameter[] getParameters() { return parameters; }
-    public Object getClassInstance() { return classInstance; }
+    public Method getMethod() {
+        return method;
+    }
+
+    public NamedParameter[] getParameters() {
+        return parameters;
+    }
+
+    public Object getClassInstance() {
+        return classInstance;
+    }
 
 }

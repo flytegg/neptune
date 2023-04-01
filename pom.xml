@@ -19,6 +19,7 @@
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
             <version>5.0.0-alpha.22</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.reflections</groupId>

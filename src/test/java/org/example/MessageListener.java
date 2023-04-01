@@ -4,7 +4,8 @@ import gg.stephen.neptune.annotation.Inject;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
-public class TestMessageListener extends ListenerAdapter {
+public class MessageListener extends ListenerAdapter {
+
     @Inject
     private MuteRegistry muteRegistry;
 
@@ -14,4 +15,5 @@ public class TestMessageListener extends ListenerAdapter {
             event.getMessage().delete().queue();
         }
     }
+
 }
