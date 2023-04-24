@@ -71,31 +71,31 @@ If you struggle with anything, there is a working example in the test folder.
 
 ## Installation
 
+The latest version can be found in the releases tab on the right.
+
 Maven  
 ```xml
-<repositories>
-	<repository>
-                <id>jitpack.io</id>
-                <url>https://jitpack.io</url>
-        </repository>
-</repositories>
+<repository>
+    <id>jitpack.io</id>
+    <url>https://jitpack.io</url>
+</repository>
 ```  
 ```xml
 <dependency>
-        <groupId>com.github.sttephen</groupId>
-        <artifactId>neptune</artifactId>
-        <version>1.2</version>
+    <groupId>com.github.sttephen</groupId>
+    <artifactId>neptune</artifactId>
+    <version>VERSION</version>
 </dependency>
 ```
 
 Gradle
 ```kt
 repositories {
-        maven("https://jitpack.io")
+    maven("https://jitpack.io")
 }
         
 dependencies {
-        implementation("com.github.sttephen:neptune:1.2")
+    implementation("com.github.sttephen:neptune:VERSION")
 }
 ```  
 
@@ -106,7 +106,7 @@ Contributions are always welcome. Please open a pull request and try to maintain
 
 ## Authors
 
-This framework was made for the team at [Flyte](https://flyte.gg), but I decided to release it in case anyone found any use from it.
+This framework was made for the team at [Flyte](https://flyte.gg), but we decided to release it in case anyone found any use from it.
 
 
 
