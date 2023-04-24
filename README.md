@@ -82,7 +82,7 @@ Maven
 ```  
 ```xml
 <dependency>
-    <groupId>com.github.sttephen</groupId>
+    <groupId>com.github.flytegg</groupId>
     <artifactId>neptune</artifactId>
     <version>VERSION</version>
 </dependency>
@@ -95,7 +95,7 @@ repositories {
 }
         
 dependencies {
-    implementation("com.github.sttephen:neptune:VERSION")
+    implementation("com.github.flytegg:neptune:VERSION")
 }
 ```  
 
