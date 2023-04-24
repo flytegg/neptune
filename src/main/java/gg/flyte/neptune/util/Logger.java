@@ -1,4 +1,4 @@
-package gg.stephen.neptune.util;
+package gg.flyte.neptune.util;
 
 public final class Logger {
     public void debug(String... strings) {

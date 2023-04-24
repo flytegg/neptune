@@ -1,4 +1,4 @@
-package gg.stephen.neptune.annotation;
+package gg.flyte.neptune.annotation;
 
 import net.dv8tion.jda.api.Permission;
 

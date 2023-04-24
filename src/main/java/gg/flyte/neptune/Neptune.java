@@ -1,8 +1,8 @@
-package gg.stephen.neptune;
+package gg.flyte.neptune;
 
-import gg.stephen.neptune.command.CommandDispatcher;
-import gg.stephen.neptune.command.CommandManager;
-import gg.stephen.neptune.util.Logger;
+import gg.flyte.neptune.command.CommandDispatcher;
+import gg.flyte.neptune.command.CommandManager;
+import gg.flyte.neptune.util.Logger;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 

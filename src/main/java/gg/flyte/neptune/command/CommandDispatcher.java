@@ -1,9 +1,9 @@
-package gg.stephen.neptune.command;
+package gg.flyte.neptune.command;
 
-import gg.stephen.neptune.annotation.Command;
-import gg.stephen.neptune.annotation.Inject;
-import gg.stephen.neptune.annotation.Instantiate;
-import gg.stephen.neptune.util.ArgumentConverter;
+import gg.flyte.neptune.annotation.Command;
+import gg.flyte.neptune.annotation.Inject;
+import gg.flyte.neptune.annotation.Instantiate;
+import gg.flyte.neptune.util.ArgumentConverter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static gg.stephen.neptune.Neptune.LOGGER;
+import static gg.flyte.neptune.Neptune.LOGGER;
 
 public class CommandDispatcher {
 

@@ -1,6 +1,6 @@
 package org.example;
 
-import gg.stephen.neptune.annotation.Inject;
+import gg.flyte.neptune.annotation.Inject;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 

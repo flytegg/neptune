@@ -1,4 +1,4 @@
-package gg.stephen.neptune.util;
+package gg.flyte.neptune.util;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;

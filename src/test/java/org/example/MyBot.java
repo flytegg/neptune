@@ -1,7 +1,7 @@
 package org.example;
 
-import gg.stephen.neptune.Neptune;
-import gg.stephen.neptune.annotation.Instantiate;
+import gg.flyte.neptune.Neptune;
+import gg.flyte.neptune.annotation.Instantiate;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;

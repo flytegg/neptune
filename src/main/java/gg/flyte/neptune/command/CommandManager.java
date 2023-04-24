@@ -1,6 +1,6 @@
-package gg.stephen.neptune.command;
+package gg.flyte.neptune.command;
 
-import gg.stephen.neptune.util.ArgumentConverter;
+import gg.flyte.neptune.util.ArgumentConverter;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import java.util.HashMap;
 import java.util.Map;
 
-import static gg.stephen.neptune.Neptune.LOGGER;
+import static gg.flyte.neptune.Neptune.LOGGER;
 
 public class CommandManager extends ListenerAdapter {
 

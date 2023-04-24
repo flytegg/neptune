@@ -1,9 +1,9 @@
-package gg.stephen.neptune.command;
+package gg.flyte.neptune.command;
 
 import com.thoughtworks.paranamer.AnnotationParanamer;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.CachingParanamer;
-import gg.stephen.neptune.annotation.Optional;
+import gg.flyte.neptune.annotation.Optional;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;

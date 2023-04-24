@@ -1,4 +1,4 @@
-package gg.stephen.neptune.annotation;
+package gg.flyte.neptune.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
