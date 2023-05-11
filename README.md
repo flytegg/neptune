@@ -35,7 +35,7 @@ public void onBan(SlashCommandInteractionEvent event, User user, @Optional Strin
 ```
 Once a command is run, the method will return all values. As default slash command behaviour dictates, you will have 3 seconds to respond to the command through SlashCommandInteractionEvent. See the JDA wiki for [more info](https://github.com/DV8FromTheWorld/JDA/wiki/Interactions).
 
-To unregister a command, simply remove any @Command reference to it and restart your Bot. It will automatically unregister globally/on the guild(s).
+If you want to unregister commands, add the `clearCommands` to the Builder as `true`, and remove the `@Command` annotation from your command.
 
 ## Listeners
 
