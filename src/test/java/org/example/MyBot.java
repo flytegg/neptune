@@ -6,18 +6,22 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
-public class MyBot {
-
+public final class MyBot {
     public MyBot() throws InterruptedException {
         JDA jda = JDABuilder.createDefault("TOKEN")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
                 .build()
                 .awaitReady();
 
-        Neptune.start(jda, this, jda.getGuildById("GUILD ID"));
+        new Neptune.Builder(jda, this)
+                .addGuilds(jda.getGuildById("GUILD_ID"))
+                .clearCommands(true)
+                .registerAllListeners(true)
+                .create();
     }
 
     @Instantiate
-    public MuteRegistry muteRegistry() { return new MuteRegistry(); }
-
+    public MuteRegistry muteRegistry() {
+        return new MuteRegistry();
+    }
 }

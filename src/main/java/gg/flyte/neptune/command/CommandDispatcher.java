@@ -10,6 +10,8 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -20,117 +22,157 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static gg.flyte.neptune.Neptune.LOGGER;
 
-public class CommandDispatcher {
+public final class CommandDispatcher {
+    private final @NotNull JDA jda;
+    private final @NotNull CommandManager commandManager;
+    private final @NotNull List<Guild> guilds;
+    private final boolean registerAllListeners;
 
-    public CommandDispatcher(JDA jda, Object clazz, CommandManager manager, boolean clearCommands, Guild... guilds) throws InstantiationException, IllegalAccessException, InvocationTargetException, IOException, ClassNotFoundException {
+    public CommandDispatcher(@NotNull JDA jda, Object mainClass, @NotNull CommandManager commandManager, @NotNull List<Guild> guilds, boolean clearCommands, boolean registerAllListeners) throws InstantiationException, IllegalAccessException, InvocationTargetException, IOException, ClassNotFoundException {
         LOGGER.debug("Instantiating dispatcher...");
-        if (clearCommands) {
-            if (guilds != null) {
-                LOGGER.debug("Specified guilds, clearing all guild commands....");
-                int amount = 0;
-                for (Guild guild : guilds) {
-                    for (net.dv8tion.jda.api.interactions.commands.Command command : guild.retrieveCommands().complete()) {
-                        command.delete().complete();
-                        LOGGER.debug("Deleted " + command + " in " + guild + ".");
-                        amount++;
+        this.jda = jda;
+        this.commandManager = commandManager;
+        this.guilds = guilds;
+        this.registerAllListeners = registerAllListeners;
+
+        if (clearCommands) unregisterCommands();
+
+        Map<String, Object> toInject = getRequiredInstantiations(mainClass);
+
+        for (Class<?> foundClass : findClasses(mainClass.getClass().getPackage().getName())) { // Loop all classes in the package
+            Object instance = foundClass.getName().equals(mainClass.getClass().getName()) ? mainClass : null; // If not main class, null
+
+            if (isListener(foundClass)) instance = registerListener(foundClass);
+
+            for (Method method : foundClass.getMethods())
+                if (method.isAnnotationPresent(Command.class)) instance = registerCommand(instance, foundClass, method);
+
+            for (Field field : foundClass.getDeclaredFields()) {
+                if (field.isAnnotationPresent(Inject.class)) {
+                    if (instance == null) {
+                        instance = foundClass.newInstance();
+                        LOGGER.debug("Instantiated " + foundClass.getSimpleName() + " due to its @Inject usage.");
                     }
+                    field.setAccessible(true);
+                    field.set(instance, toInject.get(field.getName()));
+                    LOGGER.debug("Injected " + field.getName() + " into " + instance.getClass().getSimpleName() + ".");
                 }
-                LOGGER.debug("Cleared " + amount + " commands across " + guilds.length + " guilds.");
-            } else {
-                LOGGER.debug("No guilds were specified, clearing all commands globally...");
-                int amount = 0;
-                for (net.dv8tion.jda.api.interactions.commands.Command command : jda.retrieveCommands().complete()) {
-                    command.delete().complete();
-                    LOGGER.debug("Deleted " + command + " globally.");
-                    amount++;
-                }
-                LOGGER.debug("Cleared " + amount + " commands globally.");
             }
         }
+    }
 
-        Class<?> classType = clazz.getClass();
+    private void unregisterCommands() {
+        int amount = 0;
+        if (guilds.isEmpty()) {
+            LOGGER.debug("No guilds were specified, clearing all commands globally...");
+            for (net.dv8tion.jda.api.interactions.commands.Command command : jda.retrieveCommands().complete()) {
+                command.delete().complete();
+                LOGGER.debug("Deleted " + command + " globally.");
+                amount++;
+            }
+            LOGGER.debug("Cleared " + amount + " commands globally.");
+            return;
+        }
 
-        HashMap<String, Object> toInject = new HashMap<>();
-        for (Method method : classType.getMethods()) {
+        LOGGER.debug("Specified guilds, clearing all guild commands....");
+        for (Guild guild : guilds) {
+            for (net.dv8tion.jda.api.interactions.commands.Command command : guild.retrieveCommands().complete()) {
+                command.delete().complete();
+                LOGGER.debug("Deleted " + command + " in " + guild + ".");
+                amount++;
+            }
+        }
+        LOGGER.debug("Cleared " + amount + " commands across " + guilds.size() + " guilds.");
+    }
+
+    private @NotNull Map<String, Object> getRequiredInstantiations(@NotNull Object mainClass) throws InvocationTargetException, IllegalAccessException {
+        Map<String, Object> toInject = new HashMap<>();
+        for (Method method : mainClass.getClass().getMethods()) {
             if (method.isAnnotationPresent(Instantiate.class)) {
-                toInject.put(method.getName(), method.invoke(clazz, null));
+                toInject.put(method.getName(), method.invoke(mainClass));
             }
         }
-
         LOGGER.debug("Found " + toInject.size() + " methods to inject with Neptune: " + toInject.keySet());
+        return toInject;
+    }
 
-        String packageName = classType.getPackage().getName();
+    private @NotNull Set<Class<?>> findClasses(@NotNull String packageName) {
         LOGGER.debug("Scanning classes with related package \"" + packageName + "\".");
 
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .forPackages(packageName)
                 .setScanners(new SubTypesScanner(false), new ResourcesScanner())
         );
+
         Set<Class<?>> objects = reflections.getSubTypesOf(Object.class).stream()
                 .filter(aClass -> aClass.getPackage().getName().startsWith(packageName))
                 .collect(Collectors.toSet());
         Set<Class<? extends ListenerAdapter>> listeners = reflections.getSubTypesOf(ListenerAdapter.class).stream()
                 .filter(aClass -> aClass.getPackage().getName().startsWith(packageName))
                 .collect(Collectors.toSet());
-
-        LOGGER.debug("Found " + objects.size() + " objects.");
-        LOGGER.debug("Found " + listeners.size() + " listeners.");
-
         objects.addAll(listeners);
 
-        for (Class<?> foundClass : objects) {
-            Object instance = foundClass.getName().equals(clazz.getClass().getName()) ? clazz : null;
-            for (Method method : foundClass.getMethods()) {
-                if (method.isAnnotationPresent(Command.class)) {
-                    if (instance == null) instance = foundClass.newInstance();
-
-                    Command command = method.getAnnotation(Command.class);
-                    SlashCommandData commandData = Commands.slash(command.name(), command.description());
-                    commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(command.permissions()));
-                    CommandMapping mapping = new CommandMapping(method, instance);
-
-                    for (CommandMapping.NamedParameter param : mapping.getParameters())
-                        commandData.addOption(ArgumentConverter.toOptionType(param.getType()), param.getName(), param.getName(), param.isRequired());
-
-
-                    manager.addCommand(command.name(), mapping);
-                    if (guilds != null) {
-                        for (Guild guild : guilds) {
-                            guild.upsertCommand(commandData).queue();
-                        }
-                    } else {
-                        jda.upsertCommand(commandData).queue();
-                    }
-                }
-            }
-
-            for (Field field : foundClass.getDeclaredFields()) {
-                if (instance == null && field.isAnnotationPresent(Inject.class)) {
-                    instance = foundClass.newInstance();
-                    LOGGER.debug("Instantiated " + instance.getClass().getSimpleName() + " due to it's @Inject annotation usage.");
-                }
-            }
-
-            if (instance != null) {
-                for (Field field : instance.getClass().getDeclaredFields()) {
-                    if (field.isAnnotationPresent(Inject.class)) {
-                        LOGGER.debug("Injected " + field.getName() + " into " + instance.getClass().getSimpleName() + ".");
-                        field.setAccessible(true);
-                        field.set(instance, toInject.get(field.getName()));
-                    }
-                }
-
-                if (instance.getClass().getSuperclass().getName().equals("net.dv8tion.jda.api.hooks.ListenerAdapter")) {
-                    jda.addEventListener(instance);
-                    LOGGER.debug("Automatically registered " + instance.getClass().getSimpleName() + " as an EventListener due to it having an injected dependency.");
-                }
-            }
-        }
+        LOGGER.debug("Found " + objects.size() + " classes.");
+        return objects;
     }
 
+    private @NotNull Object registerCommand(@Nullable Object instance, @NotNull Class<?> commandClass, @NotNull Method commandMethod) throws InstantiationException, IllegalAccessException {
+        if (instance == null) {
+            instance = commandClass.newInstance();
+            LOGGER.debug("Instantiated " + instance.getClass().getSimpleName() + " as a command.");
+        }
+
+        Command command = commandMethod.getAnnotation(Command.class);
+        SlashCommandData commandData = Commands.slash(command.name(), command.description());
+        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(command.permissions()));
+        CommandMapping mapping = new CommandMapping(commandMethod, instance);
+
+        for (CommandMapping.NamedParameter param : mapping.getParameters())
+            commandData.addOption(ArgumentConverter.toOptionType(param.type()), lowercaseParameterName(param.name()), param.name(), param.required());
+
+        commandManager.addCommand(command.name(), mapping);
+        if (guilds != null) {
+            for (Guild guild : guilds) {
+                guild.upsertCommand(commandData).queue();
+            }
+        } else {
+            jda.upsertCommand(commandData).queue();
+        }
+
+        return instance;
+    }
+
+    private @Nullable Object registerListener(@NotNull Class<?> listenerClass) throws InstantiationException, IllegalAccessException {
+        if (registerAllListeners || usesInject(listenerClass)) {
+            Object listener = listenerClass.newInstance();
+            jda.addEventListener(listener);
+            if (registerAllListeners) LOGGER.debug("Automatically registered " + listenerClass.getSimpleName() + " as an EventListener.");
+            else LOGGER.debug("Registered " + listenerClass.getSimpleName() + " as an EventListener due to its @Inject usage.");
+            return listener;
+        }
+        return null;
+    }
+
+    private boolean isListener(@NotNull Class<?> clazz) {
+        return clazz.getSuperclass().getName().equals("net.dv8tion.jda.api.hooks.ListenerAdapter");
+    }
+
+    private boolean usesInject(@NotNull Class<?> clazz) {
+        for (Field field : clazz.getDeclaredFields())
+            if (field.isAnnotationPresent(Inject.class)) return true;
+        return false;
+    }
+
+    private @NotNull String lowercaseParameterName(@NotNull String name) {
+        if (name.toLowerCase().equals(name)) return name;
+        LOGGER.debug("Converted " + name + " command option to lowercase due to Discord limitation.");
+        return name.toLowerCase();
+    }
 }

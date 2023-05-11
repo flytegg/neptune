@@ -4,15 +4,15 @@ import gg.flyte.neptune.util.ArgumentConverter;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static gg.flyte.neptune.Neptune.LOGGER;
 
-public class CommandManager extends ListenerAdapter {
-
-    private final Map<String, CommandMapping> commands = new HashMap<>();
+public final class CommandManager extends ListenerAdapter {
+    private final @NotNull Map<String, CommandMapping> commands = new HashMap<>();
 
     public void addCommand(String command, CommandMapping mapping) {
         commands.put(command, mapping);
@@ -30,14 +30,14 @@ public class CommandManager extends ListenerAdapter {
             paramValues[0] = e;
 
             for (int i = 0; i < mapping.getParameters().length; i++) {
-                OptionMapping option = e.getOption(mapping.getParameters()[i].getName());
+                OptionMapping option = e.getOption(mapping.getParameters()[i].name());
                 paramValues[i + 1] = option == null ? null : ArgumentConverter.toValue(option);
             }
 
             try {
                 mapping.getMethod().invoke(mapping.getClassInstance(), paramValues);
             } catch (Exception x) {
-                LOGGER.error("Error triggering '" + e.getCommandString() + "' command. Did you read the README.md?");
+                LOGGER.error("Error triggering '" + e.getCommandString() + "' command.");
                 x.printStackTrace();
             }
         }
@@ -48,5 +48,4 @@ public class CommandManager extends ListenerAdapter {
         commands.clear();
         LOGGER.info("Cleared all commands.");
     }
-
 }
