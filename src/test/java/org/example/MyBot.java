@@ -11,13 +11,13 @@ public final class MyBot {
     private final TestClass testClass = new TestClass();
 
     public MyBot() throws InterruptedException {
-        JDA jda = JDABuilder.createDefault("OTgyNjAwNDk2MTg5Njc3NTY4.G4m6J3.fx7htjmaQgMUFxIPBZhI-tYDgLjw4cTUCjtofM")
+        JDA jda = JDABuilder.createDefault("TOKEN")
                 .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
                 .build()
                 .awaitReady();
 
         new Neptune.Builder(jda, this)
-                .addGuilds(jda.getGuildById("1106292483228450937"))
+                .addGuilds(jda.getGuildById("GUILD_ID"))
                 .clearCommands(true)
                 .registerAllListeners(true)
                 .create();
