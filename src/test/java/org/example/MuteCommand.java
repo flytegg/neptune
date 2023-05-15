@@ -1,6 +1,7 @@
 package org.example;
 
 import gg.flyte.neptune.annotation.Command;
+import gg.flyte.neptune.annotation.Description;
 import gg.flyte.neptune.annotation.Inject;
 import gg.flyte.neptune.annotation.Optional;
 import net.dv8tion.jda.api.Permission;
@@ -16,7 +17,7 @@ public final class MuteCommand {
             description = "Mutes a user!",
             permissions = Permission.MODERATE_MEMBERS
     )
-    public void onMute(SlashCommandInteractionEvent e, User user, @Optional String reason) {
+    public void onMute(SlashCommandInteractionEvent e, @Description("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") User user, @Optional String reason) {
         muteRegistry.mute(user, reason == null ? "No reason given." : reason);
         e.reply("Successfully muted " + user.getAsTag() + "!").queue();
     }

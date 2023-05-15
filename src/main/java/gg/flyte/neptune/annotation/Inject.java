@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @SuppressWarnings("unused")
 public @interface Inject {
+
 }

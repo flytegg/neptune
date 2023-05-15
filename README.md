@@ -17,9 +17,9 @@ new Neptune.Builder(jda, this)
 *Note: If you do not specify any guilds, commands will be registered/unregistered globally (this can take up to 2 hours due to a Discord limitation).*
 
 ## Commands
-Below is a working example of how to register a slash command. Use the @Command annotation and specify the command name, description and the required permissions.
+Below is a working example of how to register a slash command. Use the `@Command` annotation and specify the command name, description and the required permissions.
 
-Attach a method, with any name, with SlashCommandInteractionEvent as the first parameter. This holds all of the slash command event data and where you can respond to the event hook. The following parameters will define the command arguments and their order. Allowed parameter types are Integer, Int (for Kotlin), String, Boolean, Double, User, Role, Channel and Attachment. For an optional argument, annotate with @Optional, and be sure to null check the value when returned. Please remember that Discord requires lower case option names, so in the event you provide anything uppercase Neptune will fix that for you.
+Annotate a method with `@Command` (the method can be called anything). The first parameter must be the SlashCommandInteractionEvent, from there you can list your arguments/options as parameters like shown below.
 
 > This example will register "/ban &lt;user> [reason]".
 
@@ -29,10 +29,14 @@ Attach a method, with any name, with SlashCommandInteractionEvent as the first p
         description = "Ban a member",
         permissions = {Permission.MANAGE_CHANNEL, Permission.ADMINISTRATOR}
 )
-public void onBan(SlashCommandInteractionEvent event, User user, @Optional String reason) {
+public void onBan(SlashCommandInteractionEvent event, @Description("The user you wish to mute") User user, @Optional String reason ){
 
 }
 ```
+Parameters can be annotated with the following:
+* `@Optional` - Makes the argument not required
+* `@Description` - Allows you to specify a description for the argument/option (if not specified will be name of argument)
+
 Once a command is run, the method will return all values. As default slash command behaviour dictates, you will have 3 seconds to respond to the command through SlashCommandInteractionEvent. See the JDA wiki for [more info](https://github.com/DV8FromTheWorld/JDA/wiki/Interactions).
 
 If you want to unregister commands, add the `clearCommands` to the Builder as `true`, and remove the `@Command` annotation from your command.
@@ -47,11 +51,16 @@ Due to limitations beyond our control, you **cannot create your own instance of 
 
 That begs the question: how do you use variables from within a command/listener without being able to pass them through a constructor? Well, Neptune offers a similar system to Spring Boot.
 
-In your main class (the one you started Neptune in) you can setup a variable to be accessible across your project using something like this:
+In your main class (the one you started Neptune in) you can setup a variable to be accessible across your project by annotating either a method or field, as shown below:
 
 ```java
 @Instantiate
-public TestClass testClass() { return new TestClass(); }
+public TestClass testClass() {
+    return new TestClass();
+}
+// or
+@Instantiate
+private final TestClass testClass = new TestClass();
 ```
 That object will then be accessible across your whole project. To use it elsewhere, create a variable with an identical name to the method and Neptune will beam the value through, as seen below:
 ```java
@@ -87,7 +96,7 @@ Maven
 </dependency>
 ```
 
-Gradle
+Gradle (Kotlin DSL)
 ```kt
 repositories {
     maven("https://jitpack.io")

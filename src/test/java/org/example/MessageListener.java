@@ -10,8 +10,12 @@ public final class MessageListener extends ListenerAdapter {
     @Inject
     private MuteRegistry muteRegistry;
 
+    @Inject
+    private TestClass testClass;
+
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        testClass.test();
         if (muteRegistry.isMuted(event.getAuthor())) event.getMessage().delete().queueAfter(3L, TimeUnit.SECONDS);
     }
 }

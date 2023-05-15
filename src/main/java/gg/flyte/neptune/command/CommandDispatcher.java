@@ -94,12 +94,20 @@ public final class CommandDispatcher {
 
     private @NotNull Map<String, Object> getRequiredInstantiations(@NotNull Object mainClass) throws InvocationTargetException, IllegalAccessException {
         Map<String, Object> toInject = new HashMap<>();
+        // Get all methods
         for (Method method : mainClass.getClass().getMethods()) {
             if (method.isAnnotationPresent(Instantiate.class)) {
                 toInject.put(method.getName(), method.invoke(mainClass));
             }
         }
-        LOGGER.debug("Found " + toInject.size() + " methods to inject with Neptune: " + toInject.keySet());
+        // Get all class fields
+        for (Field field : mainClass.getClass().getDeclaredFields()) {
+            if (field.isAnnotationPresent(Instantiate.class)) {
+                field.setAccessible(true);
+                toInject.put(field.getName(), field.get(mainClass));
+            }
+        }
+        LOGGER.debug("Found " + toInject.size() + " methods/fields to inject with Neptune: " + toInject.keySet());
         return toInject;
     }
 
@@ -135,16 +143,12 @@ public final class CommandDispatcher {
         CommandMapping mapping = new CommandMapping(commandMethod, instance);
 
         for (CommandMapping.NamedParameter param : mapping.getParameters())
-            commandData.addOption(ArgumentConverter.toOptionType(param.type()), lowercaseParameterName(param.name()), param.name(), param.required());
+            commandData.addOption(ArgumentConverter.toOptionType(param.type()), lowercaseParameterName(param.name()), param.description() == null ? param.name() : param.description(), param.required());
 
         commandManager.addCommand(command.name(), mapping);
-        if (guilds != null) {
-            for (Guild guild : guilds) {
-                guild.upsertCommand(commandData).queue();
-            }
-        } else {
-            jda.upsertCommand(commandData).queue();
-        }
+
+        if (guilds.isEmpty()) jda.upsertCommand(commandData).queue();
+        else for (Guild guild : guilds) guild.upsertCommand(commandData).queue();
 
         return instance;
     }
@@ -153,8 +157,10 @@ public final class CommandDispatcher {
         if (registerAllListeners || usesInject(listenerClass)) {
             Object listener = listenerClass.newInstance();
             jda.addEventListener(listener);
-            if (registerAllListeners) LOGGER.debug("Automatically registered " + listenerClass.getSimpleName() + " as an EventListener.");
-            else LOGGER.debug("Registered " + listenerClass.getSimpleName() + " as an EventListener due to its @Inject usage.");
+            if (registerAllListeners)
+                LOGGER.debug("Automatically registered " + listenerClass.getSimpleName() + " as an EventListener.");
+            else
+                LOGGER.debug("Registered " + listenerClass.getSimpleName() + " as an EventListener due to its @Inject usage.");
             return listener;
         }
         return null;

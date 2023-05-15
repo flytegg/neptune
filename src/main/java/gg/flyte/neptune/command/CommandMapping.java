@@ -3,11 +3,16 @@ package gg.flyte.neptune.command;
 import com.thoughtworks.paranamer.AnnotationParanamer;
 import com.thoughtworks.paranamer.BytecodeReadingParanamer;
 import com.thoughtworks.paranamer.CachingParanamer;
+import gg.flyte.neptune.annotation.Description;
 import gg.flyte.neptune.annotation.Optional;
+import gg.flyte.neptune.util.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+
+import static gg.flyte.neptune.Neptune.LOGGER;
 
 public final class CommandMapping {
     private final @NotNull Method method;
@@ -24,11 +29,11 @@ public final class CommandMapping {
 
         for (int i = 1; i < paramNames.length; i++) {
             Parameter param = method.getParameters()[i];
-            parameters[i - 1] = new NamedParameter(paramNames[i], param.getType(), !param.isAnnotationPresent(Optional.class));
+            parameters[i - 1] = new NamedParameter(paramNames[i], param.getType(), !param.isAnnotationPresent(Optional.class), obtainDescription(paramNames[i], param));
         }
     }
 
-    record NamedParameter(@NotNull String name, @NotNull Class<?> type, boolean required) {
+    record NamedParameter(@NotNull String name, @NotNull Class<?> type, boolean required, @Nullable String description) {
 
     }
 
@@ -42,5 +47,13 @@ public final class CommandMapping {
 
     public @NotNull Object getClassInstance() {
         return classInstance;
+    }
+
+    private @Nullable String obtainDescription(@NotNull String parameterName, @NotNull Parameter parameter) {
+        if (!parameter.isAnnotationPresent(Description.class)) return null;
+        String description = parameter.getAnnotation(Description.class).value();
+        if (description.length() > 100) description = description.substring(0, 100);
+        LOGGER.debug("We trimmed your description for argument/option \"" + parameterName + "\" as it was more than 100 characters (a Discord limitation).");
+        return description;
     }
 }
