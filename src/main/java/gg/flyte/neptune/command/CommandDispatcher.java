@@ -164,7 +164,12 @@ public final class CommandDispatcher {
         CommandMapping mapping = new CommandMapping(commandMethod, instance);
 
         for (CommandMapping.NamedParameter param : mapping.getParameters())
-            commandData.addOption(ArgumentConverter.toOptionType(param.type()), lowercaseParameterName(param.name()), param.description() == null ? param.name() : param.description(), param.required());
+            commandData.addOption(
+                    ArgumentConverter.toOptionType(param.type()),
+                    lowercaseParameterName(param.name()),
+                    param.description() == null ? param.name() : param.description(),
+                    param.required()
+            );
 
         commandManager.addCommand(command.name(), mapping);
 
