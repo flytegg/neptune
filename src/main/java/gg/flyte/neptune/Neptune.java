@@ -29,7 +29,7 @@ public final class Neptune {
         try {
             new CommandDispatcher(jda, mainClass, manager, guilds, clearCommands, registerAllListeners);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | IOException |
-                 ClassNotFoundException x) {
+                 ClassNotFoundException | NoSuchMethodException x) {
             LOGGER.error("Error registering commands. Did you read the README.md?");
             x.printStackTrace();
         }

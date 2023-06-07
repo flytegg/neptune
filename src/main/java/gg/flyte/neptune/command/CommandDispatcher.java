@@ -1,6 +1,7 @@
 package gg.flyte.neptune.command;
 
 import gg.flyte.neptune.annotation.Command;
+import gg.flyte.neptune.annotation.Exclude;
 import gg.flyte.neptune.annotation.Inject;
 import gg.flyte.neptune.annotation.Instantiate;
 import gg.flyte.neptune.util.ArgumentConverter;
@@ -35,7 +36,7 @@ public final class CommandDispatcher {
     private final @NotNull List<Guild> guilds;
     private final boolean registerAllListeners;
 
-    public CommandDispatcher(@NotNull JDA jda, Object mainClass, @NotNull CommandManager commandManager, @NotNull List<Guild> guilds, boolean clearCommands, boolean registerAllListeners) throws InstantiationException, IllegalAccessException, InvocationTargetException, IOException, ClassNotFoundException {
+    public CommandDispatcher(@NotNull JDA jda, Object mainClass, @NotNull CommandManager commandManager, @NotNull List<Guild> guilds, boolean clearCommands, boolean registerAllListeners) throws InstantiationException, IllegalAccessException, InvocationTargetException, IOException, ClassNotFoundException, NoSuchMethodException {
         LOGGER.debug("Instantiating dispatcher...");
         this.jda = jda;
         this.commandManager = commandManager;
@@ -47,19 +48,35 @@ public final class CommandDispatcher {
         Map<String, Object> toInject = getRequiredInstantiations(mainClass);
 
         for (Class<?> foundClass : findClasses(mainClass.getClass().getPackage().getName())) { // Loop all classes in the package
-            Object instance = foundClass.getName().equals(mainClass.getClass().getName()) ? mainClass : null; // If not main class, null
+            // If main class, ignore
+            if (foundClass.getName().equals(mainClass.getClass().getName())) continue;
 
-            if (isListener(foundClass)) instance = registerListener(foundClass);
+            Object instance = null;
+            boolean isListener = isListener(foundClass);
+            boolean isCommand = isCommand(foundClass);
+            boolean shouldExclude = shouldExclude(foundClass);
 
-            for (Method method : foundClass.getMethods())
-                if (method.isAnnotationPresent(Command.class)) instance = registerCommand(instance, foundClass, method);
+            if (isListener) instance = registerListener(foundClass);
+
+            for (Method method : foundClass.getDeclaredMethods())
+                if (isCommand) instance = registerCommand(instance, foundClass, method);
+
+            /*
+             * If it's null (since that means it's not a listener or command and hasn't already been instantiated)
+             * If it uses @Inject, since we want to register those unless...
+             * ...it should be excluded, in which case don't go ahead and make a new instance
+             * Otherwise, make new instance as one won't already exist and we want one
+             */
+            if (instance == null && usesInject(foundClass) && shouldExclude) {
+                LOGGER.debug("Not instantiated " + foundClass.getSimpleName() + " despite its @Inject usage due to its @Exclude usage.");
+                continue;
+            } else {
+                instance = foundClass.getDeclaredConstructor().newInstance();
+                LOGGER.debug("Instantiated " + foundClass.getSimpleName() + " due to its @Inject usage.");
+            }
 
             for (Field field : foundClass.getDeclaredFields()) {
                 if (field.isAnnotationPresent(Inject.class)) {
-                    if (instance == null) {
-                        instance = foundClass.newInstance();
-                        LOGGER.debug("Instantiated " + foundClass.getSimpleName() + " due to its @Inject usage.");
-                    }
                     field.setAccessible(true);
                     field.set(instance, toInject.get(field.getName()));
                     LOGGER.debug("Injected " + field.getName() + " into " + instance.getClass().getSimpleName() + ".");
@@ -95,7 +112,7 @@ public final class CommandDispatcher {
     private @NotNull Map<String, Object> getRequiredInstantiations(@NotNull Object mainClass) throws InvocationTargetException, IllegalAccessException {
         Map<String, Object> toInject = new HashMap<>();
         // Get all methods
-        for (Method method : mainClass.getClass().getMethods()) {
+        for (Method method : mainClass.getClass().getDeclaredMethods()) {
             if (method.isAnnotationPresent(Instantiate.class)) {
                 toInject.put(method.getName(), method.invoke(mainClass));
             }
@@ -107,7 +124,7 @@ public final class CommandDispatcher {
                 toInject.put(field.getName(), field.get(mainClass));
             }
         }
-        LOGGER.debug("Found " + toInject.size() + " methods/fields to inject with Neptune: " + toInject.keySet());
+        LOGGER.debug("Found " + toInject.size() + " methods/fields to instantiate with Neptune: " + toInject.keySet());
         return toInject;
     }
 
@@ -131,9 +148,13 @@ public final class CommandDispatcher {
         return objects;
     }
 
-    private @NotNull Object registerCommand(@Nullable Object instance, @NotNull Class<?> commandClass, @NotNull Method commandMethod) throws InstantiationException, IllegalAccessException {
+    private @NotNull Object registerCommand(@Nullable Object instance, @NotNull Class<?> commandClass, @NotNull Method commandMethod) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        if (shouldExclude(commandClass)) {
+            LOGGER.warn(commandClass.getSimpleName() + " is incorrectly annotated with @Exclude, command classes cannot be excluded.");
+        }
+
         if (instance == null) {
-            instance = commandClass.newInstance();
+            instance = commandClass.getDeclaredConstructor().newInstance();
             LOGGER.debug("Instantiated " + instance.getClass().getSimpleName() + " as a command.");
         }
 
@@ -143,7 +164,12 @@ public final class CommandDispatcher {
         CommandMapping mapping = new CommandMapping(commandMethod, instance);
 
         for (CommandMapping.NamedParameter param : mapping.getParameters())
-            commandData.addOption(ArgumentConverter.toOptionType(param.type()), lowercaseParameterName(param.name()), param.description() == null ? param.name() : param.description(), param.required());
+            commandData.addOption(
+                    ArgumentConverter.toOptionType(param.type()),
+                    lowercaseParameterName(param.name()),
+                    param.description() == null ? param.name() : param.description(),
+                    param.required()
+            );
 
         commandManager.addCommand(command.name(), mapping);
 
@@ -153,9 +179,13 @@ public final class CommandDispatcher {
         return instance;
     }
 
-    private @Nullable Object registerListener(@NotNull Class<?> listenerClass) throws InstantiationException, IllegalAccessException {
+    private @Nullable Object registerListener(@NotNull Class<?> listenerClass) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+        if (shouldExclude(listenerClass)) {
+            LOGGER.debug("Not registered listener " + listenerClass.getSimpleName() + " due to its @Exclude usage.");
+            return null;
+        }
         if (registerAllListeners || usesInject(listenerClass)) {
-            Object listener = listenerClass.newInstance();
+            Object listener = listenerClass.getDeclaredConstructor().newInstance();
             jda.addEventListener(listener);
             if (registerAllListeners)
                 LOGGER.debug("Automatically registered " + listenerClass.getSimpleName() + " as an EventListener.");
@@ -170,10 +200,20 @@ public final class CommandDispatcher {
         return clazz.getSuperclass().getName().equals("net.dv8tion.jda.api.hooks.ListenerAdapter");
     }
 
+    private boolean isCommand(@NotNull Class<?> clazz) {
+        for (Method method : clazz.getDeclaredMethods())
+            if (method.isAnnotationPresent(Command.class)) return true;
+        return false;
+    }
+
     private boolean usesInject(@NotNull Class<?> clazz) {
         for (Field field : clazz.getDeclaredFields())
             if (field.isAnnotationPresent(Inject.class)) return true;
         return false;
+    }
+
+    private boolean shouldExclude(@NotNull Class<?> clazz) {
+        return clazz.isAnnotationPresent(Exclude.class);
     }
 
     private @NotNull String lowercaseParameterName(@NotNull String name) {

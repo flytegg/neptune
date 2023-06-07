@@ -1,13 +1,11 @@
 package org.example;
 
-import gg.flyte.neptune.annotation.Command;
-import gg.flyte.neptune.annotation.Description;
-import gg.flyte.neptune.annotation.Inject;
-import gg.flyte.neptune.annotation.Optional;
+import gg.flyte.neptune.annotation.*;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+@Exclude
 public final class MuteCommand {
     @Inject
     private MuteRegistry muteRegistry;
