@@ -15,6 +15,7 @@ public final class MessageListener extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        if (event.getAuthor().isBot()) return;
         testClass.test();
         if (muteRegistry.isMuted(event.getAuthor())) event.getMessage().delete().queueAfter(3L, TimeUnit.SECONDS);
     }
