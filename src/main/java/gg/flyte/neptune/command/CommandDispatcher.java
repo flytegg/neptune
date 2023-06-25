@@ -47,13 +47,15 @@ public final class CommandDispatcher {
 
         Map<String, Object> toInject = getRequiredInstantiations(mainClass);
 
-        for (Class<?> foundClass : findClasses(mainClass.getClass().getPackage().getName())) { // Loop all classes in the package
+        // Loop all classes in the package
+        for (Class<?> foundClass : findClasses(mainClass.getClass().getPackage().getName())) {
             // If main class, ignore
             if (foundClass.getName().equals(mainClass.getClass().getName())) continue;
 
             Object instance = null;
             boolean isListener = isListener(foundClass);
             boolean isCommand = isCommand(foundClass);
+            boolean usesInject = usesInject(foundClass);
             boolean shouldExclude = shouldExclude(foundClass);
 
             if (isListener) instance = registerListener(foundClass);
@@ -67,13 +69,19 @@ public final class CommandDispatcher {
              * ...it should be excluded, in which case don't go ahead and make a new instance
              * Otherwise, make new instance as one won't already exist and we want one
              */
-            if (instance == null && usesInject(foundClass) && shouldExclude) {
+            if (instance == null && usesInject && shouldExclude) {
                 LOGGER.debug("Not instantiated " + foundClass.getSimpleName() + " despite its @Inject usage due to its @Exclude usage.");
                 continue;
-            } else {
+            }
+
+            // If it's still null but uses @Inject, we should make an instance to control
+            if (instance == null && usesInject) {
                 instance = foundClass.getDeclaredConstructor().newInstance();
                 LOGGER.debug("Instantiated " + foundClass.getSimpleName() + " due to its @Inject usage.");
             }
+
+            // If still null, we cannot inject into it below
+            if (instance == null) continue;
 
             for (Field field : foundClass.getDeclaredFields()) {
                 if (field.isAnnotationPresent(Inject.class)) {
@@ -166,7 +174,7 @@ public final class CommandDispatcher {
         for (CommandMapping.NamedParameter param : mapping.getParameters())
             commandData.addOption(
                     ArgumentConverter.toOptionType(param.type()),
-                    lowercaseParameterName(param.name()),
+                    param.name(),
                     param.description() == null ? param.name() : param.description(),
                     param.required()
             );
@@ -214,11 +222,5 @@ public final class CommandDispatcher {
 
     private boolean shouldExclude(@NotNull Class<?> clazz) {
         return clazz.isAnnotationPresent(Exclude.class);
-    }
-
-    private @NotNull String lowercaseParameterName(@NotNull String name) {
-        if (name.toLowerCase().equals(name)) return name;
-        LOGGER.debug("Converted " + name + " command option to lowercase due to Discord limitation.");
-        return name.toLowerCase();
     }
 }
