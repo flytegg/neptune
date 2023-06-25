@@ -54,14 +54,13 @@ public final class CommandDispatcher {
 
             Object instance = null;
             boolean isListener = isListener(foundClass);
-            boolean isCommand = isCommand(foundClass);
             boolean usesInject = usesInject(foundClass);
             boolean shouldExclude = shouldExclude(foundClass);
 
             if (isListener) instance = registerListener(foundClass);
 
             for (Method method : foundClass.getDeclaredMethods())
-                if (isCommand) instance = registerCommand(instance, foundClass, method);
+                if (isCommand(method)) instance = registerCommand(instance, foundClass, method);
 
             /*
              * If it's null (since that means it's not a listener or command and hasn't already been instantiated)
@@ -208,10 +207,8 @@ public final class CommandDispatcher {
         return clazz.getSuperclass().getName().equals("net.dv8tion.jda.api.hooks.ListenerAdapter");
     }
 
-    private boolean isCommand(@NotNull Class<?> clazz) {
-        for (Method method : clazz.getDeclaredMethods())
-            if (method.isAnnotationPresent(Command.class)) return true;
-        return false;
+    private boolean isCommand(@NotNull Method method) {
+        return method.isAnnotationPresent(Command.class);
     }
 
     private boolean usesInject(@NotNull Class<?> clazz) {
