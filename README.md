@@ -29,7 +29,7 @@ Annotate a method with `@Command` (the method can be called anything). The first
         description = "Ban a member",
         permissions = {Permission.MANAGE_CHANNEL, Permission.ADMINISTRATOR}
 )
-public void onBan(SlashCommandInteractionEvent event, @Description("The user you wish to mute") User user, @Optional String reason){
+public void onBan(SlashCommandInteractionEvent event, @Description("The user you wish to mute") User user, @Optional String reason) {
 
 }
 ```
