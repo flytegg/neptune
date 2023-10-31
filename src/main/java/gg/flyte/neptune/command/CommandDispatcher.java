@@ -180,8 +180,8 @@ public final class CommandDispatcher {
 
         commandManager.addCommand(command.name(), mapping);
 
-        if (guilds.isEmpty()) jda.upsertCommand(commandData).queue();
-        else for (Guild guild : guilds) guild.upsertCommand(commandData).queue();
+        if (guilds.isEmpty()) jda.upsertCommand(commandData).complete();
+        else for (Guild guild : guilds) guild.upsertCommand(commandData).complete();
 
         return instance;
     }

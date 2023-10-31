@@ -79,18 +79,19 @@ If you struggle with anything, there is a working example in the test folder.
 
 ## Installation
 
-The latest version can be found in the releases tab on the right.
+**The latest version can be found in the releases tab on the right.**
 
 Maven
 ```xml
 <repository>
-    <id>jitpack.io</id>
-    <url>https://jitpack.io</url>
+    <id>flyte-repository-releases</id>
+    <name>Flyte Repository</name>
+    <url>https://repo.flyte.gg/releases</url>
 </repository>
 ```  
 ```xml
 <dependency>
-    <groupId>com.github.flytegg</groupId>
+    <groupId>gg.flyte</groupId>
     <artifactId>neptune</artifactId>
     <version>VERSION</version>
 </dependency>
@@ -98,13 +99,12 @@ Maven
 
 Gradle (Kotlin DSL)
 ```kt
-repositories {
-    maven("https://jitpack.io")
+maven {
+    name = "flyteRepositoryReleases"
+    url = uri("https://repo.flyte.gg/releases")
 }
         
-dependencies {
-    implementation("com.github.flytegg:neptune:VERSION")
-}
+implementation("gg.flyte:neptune:VERSION")
 ```  
 
 ## Contributing
