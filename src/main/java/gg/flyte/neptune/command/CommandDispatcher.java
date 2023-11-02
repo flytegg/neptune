@@ -22,10 +22,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static gg.flyte.neptune.Neptune.LOGGER;
@@ -60,7 +57,10 @@ public final class CommandDispatcher {
             if (isListener) instance = registerListener(foundClass);
 
             for (Method method : foundClass.getDeclaredMethods())
-                if (isCommand(method)) instance = registerCommand(instance, foundClass, method);
+                if (isCommand(method)) {
+                    Object command = registerCommand(instance, foundClass, method);
+                    if (command != null) instance = command;
+                }
 
             /*
              * If it's null (since that means it's not a listener or command and hasn't already been instantiated)
@@ -155,7 +155,7 @@ public final class CommandDispatcher {
         return objects;
     }
 
-    private @NotNull Object registerCommand(@Nullable Object instance, @NotNull Class<?> commandClass, @NotNull Method commandMethod) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    private @Nullable Object registerCommand(@Nullable Object instance, @NotNull Class<?> commandClass, @NotNull Method commandMethod) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         if (shouldExclude(commandClass)) {
             LOGGER.warn(commandClass.getSimpleName() + " is incorrectly annotated with @Exclude, command classes cannot be excluded.");
         }
@@ -166,6 +166,12 @@ public final class CommandDispatcher {
         }
 
         Command command = commandMethod.getAnnotation(Command.class);
+
+        if (command == null) {
+            LOGGER.error("Error when obtaining the command from " + commandMethod.getName() + " in " + instance.getClass().getSimpleName());
+            return null;
+        }
+
         SlashCommandData commandData = Commands.slash(command.name(), command.description());
         commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(command.permissions()));
         CommandMapping mapping = new CommandMapping(commandMethod, instance);
@@ -182,6 +188,8 @@ public final class CommandDispatcher {
 
         if (guilds.isEmpty()) jda.upsertCommand(commandData).complete();
         else for (Guild guild : guilds) guild.upsertCommand(commandData).complete();
+
+        LOGGER.debug("Successfully registered " + instance.getClass().getSimpleName() + " as a command.");
 
         return instance;
     }
