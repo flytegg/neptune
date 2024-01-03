@@ -5,17 +5,24 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import static gg.flyte.neptune.Neptune.LOGGER;
 
 public final class CommandManager extends ListenerAdapter {
-    private final @NotNull Map<String, CommandMapping> commands = new HashMap<>();
+    private final @NotNull Map<String, MappedCommand> commands = new HashMap<>();
 
-    public void addCommand(String command, CommandMapping mapping) {
-        commands.put(command, mapping);
+    public void addCommand(MappedCommand command) {
+        commands.put(command.getName(), command);
+    }
+
+    public @Nullable MappedCommand getCommand(@NotNull String name) {
+        return commands.get(name);
     }
 
     public int size() {
@@ -25,23 +32,27 @@ public final class CommandManager extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent e) {
         if (commands.containsKey(e.getName())) {
-            CommandMapping mapping = commands.get(e.getName());
-            Object[] paramValues = new Object[mapping.getParameters().length + 1];
-            paramValues[0] = e;
+            MappedCommand command = commands.get(e.getName());
+            Collection<MappedCommand.Parameter> parameters = command.getParameters();
 
-            for (int i = 0; i < mapping.getParameters().length; i++) {
-                OptionMapping option = e.getOption(mapping.getParameters()[i].name());
-                paramValues[i + 1] = option == null ? null : ArgumentConverter.toValue(option);
+            Object[] methodArguments = new Object[parameters.size() + 1];
+            // Add the event as the first argument
+            methodArguments[0] = e;
+
+            int i = 1;
+            for (MappedCommand.Parameter parameter : command.getParameters()) {
+                OptionMapping option = e.getOption(parameter.name());
+                methodArguments[i] = option == null ? null : ArgumentConverter.toValue(option);
+                i++;
             }
 
             try {
-                mapping.getMethod().invoke(mapping.getClassInstance(), paramValues);
+                command.getCommandMethod().invoke(command.getCommandClassInstance(), methodArguments);
             } catch (Exception x) {
                 LOGGER.error("Error triggering '" + e.getCommandString() + "' command.");
                 x.printStackTrace();
             }
         }
-
     }
 
     public void terminate() {

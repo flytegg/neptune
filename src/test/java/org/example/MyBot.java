@@ -18,8 +18,9 @@ public final class MyBot {
 
         new Neptune.Builder(jda, this)
                 .addGuilds(jda.getGuildById("GUILD_ID"))
-                .clearCommands(true)
+                .clearCommands(false)
                 .registerAllListeners(true)
+                .autoCompleteInteractionHandler(new TestAutoCompleteHandler())
                 .create();
     }
 

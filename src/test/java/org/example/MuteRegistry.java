@@ -3,7 +3,7 @@ package org.example;
 import net.dv8tion.jda.api.entities.User;
 
 public final class MuteRegistry {
-    public void mute(User user, String reason) {
+    public void mute(User user, String reason, int duration) {
         // MUTE USER HERE
     }
 

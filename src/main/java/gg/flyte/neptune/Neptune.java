@@ -1,5 +1,6 @@
 package gg.flyte.neptune;
 
+import gg.flyte.neptune.command.CommandAutoCompleteInteractionHandler;
 import gg.flyte.neptune.command.CommandDispatcher;
 import gg.flyte.neptune.command.CommandManager;
 import gg.flyte.neptune.util.Logger;
@@ -20,7 +21,7 @@ public final class Neptune {
     private final @NotNull JDA jda;
     private final @NotNull CommandManager manager;
 
-    private Neptune(@NotNull JDA jda, @NotNull Object mainClass, @NotNull List<Guild> guilds, boolean clearCommands, boolean registerAllListeners) {
+    private Neptune(@NotNull JDA jda, @NotNull Object mainClass, @Nullable CommandAutoCompleteInteractionHandler autoCompleteInteractionHandler, @NotNull List<Guild> guilds, boolean clearCommands, boolean registerAllListeners) {
         double start = System.currentTimeMillis();
         LOGGER.info("Starting Neptune...");
         this.jda = jda;
@@ -33,6 +34,11 @@ public final class Neptune {
             LOGGER.error("Error registering commands. Did you read the README.md?");
             x.printStackTrace();
         }
+
+        if (autoCompleteInteractionHandler == null)
+            autoCompleteInteractionHandler = new CommandAutoCompleteInteractionHandler();
+        autoCompleteInteractionHandler.inject(manager);
+        jda.addEventListener(autoCompleteInteractionHandler);
 
         LOGGER.info("Finished enabling, registered " + manager.size() + " commands in " + new DecimalFormat("#.###").format((System.currentTimeMillis() - start) / 1000D) + "s.");
     }
@@ -49,6 +55,7 @@ public final class Neptune {
     public static class Builder {
         private final @NotNull JDA jda;
         private final @NotNull Object mainClass;
+        private CommandAutoCompleteInteractionHandler autoCompleteInteractionHandler;
         private final @NotNull List<Guild> guilds = new ArrayList<>();
         private boolean clearCommands = false;
         private boolean registerAllListeners = true;
@@ -56,6 +63,11 @@ public final class Neptune {
         public Builder(@NotNull JDA jda, @NotNull Object mainClass) {
             this.jda = jda;
             this.mainClass = mainClass;
+        }
+
+        public @NotNull Builder autoCompleteInteractionHandler(@NotNull CommandAutoCompleteInteractionHandler autoCompleteInteractionHandler) {
+            this.autoCompleteInteractionHandler = autoCompleteInteractionHandler;
+            return this;
         }
 
         public @NotNull Builder addGuilds(@NotNull Guild... guilds) {
@@ -74,7 +86,7 @@ public final class Neptune {
         }
 
         public @NotNull Neptune create() {
-            return new Neptune(jda, mainClass, guilds, clearCommands, registerAllListeners);
+            return new Neptune(jda, mainClass, autoCompleteInteractionHandler, guilds, clearCommands, registerAllListeners);
         }
     }
 }

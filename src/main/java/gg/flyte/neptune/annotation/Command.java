@@ -17,6 +17,4 @@ public @interface Command {
 
     Permission[] permissions() default {};
 
-    Option[] options() default {};
-
 }

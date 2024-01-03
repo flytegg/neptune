@@ -22,7 +22,10 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static gg.flyte.neptune.Neptune.LOGGER;
@@ -155,43 +158,43 @@ public final class CommandDispatcher {
         return objects;
     }
 
-    private @Nullable Object registerCommand(@Nullable Object instance, @NotNull Class<?> commandClass, @NotNull Method commandMethod) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    private @Nullable Object registerCommand(@Nullable Object commandInstance, @NotNull Class<?> commandClass, @NotNull Method commandMethod) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         if (shouldExclude(commandClass)) {
             LOGGER.warn(commandClass.getSimpleName() + " is incorrectly annotated with @Exclude, command classes cannot be excluded.");
         }
 
-        if (instance == null) {
-            instance = commandClass.getDeclaredConstructor().newInstance();
-            LOGGER.debug("Instantiated " + instance.getClass().getSimpleName() + " as a command.");
+        if (commandInstance == null) {
+            commandInstance = commandClass.getDeclaredConstructor().newInstance();
+            LOGGER.debug("Instantiated " + commandInstance.getClass().getSimpleName() + " as a command.");
         }
 
-        Command command = commandMethod.getAnnotation(Command.class);
+        MappedCommand command = new MappedCommand(commandMethod, commandInstance);
 
-        if (command == null) {
-            LOGGER.error("Error when obtaining the command from " + commandMethod.getName() + " in " + instance.getClass().getSimpleName());
+        if (command.getCommand() == null) {
+            LOGGER.error("Error when obtaining the command from " + commandMethod.getName() + " in " + commandInstance.getClass().getSimpleName());
             return null;
         }
 
-        SlashCommandData commandData = Commands.slash(command.name(), command.description());
-        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(command.permissions()));
-        CommandMapping mapping = new CommandMapping(commandMethod, instance);
+        SlashCommandData commandData = Commands.slash(command.getName(), command.getDescription());
+        commandData.setDefaultPermissions(DefaultMemberPermissions.enabledFor(command.getPermissions()));
 
-        for (CommandMapping.NamedParameter param : mapping.getParameters())
+        for (MappedCommand.Parameter parameter : command.getParameters())
             commandData.addOption(
-                    ArgumentConverter.toOptionType(param.type()),
-                    param.name(),
-                    param.description() == null ? param.name() : param.description(),
-                    param.required()
+                    ArgumentConverter.toOptionType(parameter.type()),
+                    parameter.name(),
+                    parameter.description() == null ? parameter.name() : parameter.description(),
+                    parameter.required(),
+                    parameter.isAutoComplete()
             );
 
-        commandManager.addCommand(command.name(), mapping);
+        commandManager.addCommand(command);
 
         if (guilds.isEmpty()) jda.upsertCommand(commandData).complete();
         else for (Guild guild : guilds) guild.upsertCommand(commandData).complete();
 
-        LOGGER.debug("Successfully registered " + instance.getClass().getSimpleName() + " as a command.");
+        LOGGER.debug("Successfully registered " + commandInstance.getClass().getSimpleName() + " as a command.");
 
-        return instance;
+        return commandInstance;
     }
 
     private @Nullable Object registerListener(@NotNull Class<?> listenerClass) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
