@@ -32,7 +32,7 @@ public final class CommandMapping {
         }
     }
 
-    record NamedParameter(@NotNull String name, @NotNull Class<?> type, boolean required,
+    public record NamedParameter(@NotNull String name, @NotNull Class<?> type, boolean required,
                           @Nullable String description) {
     }
 
