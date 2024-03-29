@@ -3,6 +3,10 @@
 
 An annotation-based slash command framework for JDA.
 
+For questions, support or to chat with the team, come join the Discord:
+
+[![Discord Banner](https://discordapp.com/api/guilds/835561528299880518/widget.png?style=banner2)](https://discord.gg/flyte)
+
 ## How to Use
 
 You can create an instance of Neptune using the Builder, this allows you to control some of Neptune's functionality. Below is an example of how you can use the Builder:
