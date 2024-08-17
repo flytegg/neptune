@@ -7,17 +7,19 @@ import gg.flyte.neptune.annotation.Description;
 import gg.flyte.neptune.annotation.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-
-import static gg.flyte.neptune.Neptune.LOGGER;
 
 public final class CommandMapping {
     private final @NotNull Method method;
     private final @NotNull Object classInstance;
 
     private final @NotNull NamedParameter[] parameters;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandMapping.class);
 
     public CommandMapping(@NotNull Method method, @NotNull Object classInstance) {
         this.method = method;

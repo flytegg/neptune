@@ -17,6 +17,8 @@ import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.util.ConfigurationBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -25,13 +27,12 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static gg.flyte.neptune.Neptune.LOGGER;
-
 public final class CommandDispatcher {
     private final @NotNull JDA jda;
     private final @NotNull CommandManager commandManager;
     private final @NotNull List<Guild> guilds;
     private final boolean registerAllListeners;
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandDispatcher.class);
 
     public CommandDispatcher(@NotNull JDA jda, Object mainClass, @NotNull CommandManager commandManager, @NotNull List<Guild> guilds, boolean clearCommands, boolean registerAllListeners) throws InstantiationException, IllegalAccessException, InvocationTargetException, IOException, ClassNotFoundException, NoSuchMethodException {
         LOGGER.debug("Instantiating dispatcher...");
