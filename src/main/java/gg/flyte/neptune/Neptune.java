@@ -5,6 +5,7 @@ import gg.flyte.neptune.command.CommandManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class Neptune {
-    public static final @NotNull org.slf4j.Logger LOGGER = LoggerFactory.getLogger(Neptune.class);
+    public static final @NotNull Logger LOGGER = LoggerFactory.getLogger(Neptune.class);
 
     private final @NotNull JDA jda;
     private final @NotNull CommandManager manager;
