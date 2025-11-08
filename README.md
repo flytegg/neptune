@@ -5,7 +5,7 @@ An annotation-based slash command framework for JDA.
 
 For questions, support or to chat with the team, come join the Discord:
 
-[![Discord Banner](https://discordapp.com/api/guilds/835561528299880518/widget.png?style=banner2)](https://discord.gg/flyte)
+[![Discord Banner](https://discordapp.com/api/guilds/835561528299880518/widget.png?style=banner2)](https://flyte.gg/discord)
 
 ## How to Use
 
