@@ -5,14 +5,15 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static gg.flyte.neptune.Neptune.LOGGER;
-
 public final class CommandManager extends ListenerAdapter {
     private final @NotNull Map<String, CommandMapping> commands = new HashMap<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandManager.class);
 
     public void addCommand(String command, CommandMapping mapping) {
         commands.put(command, mapping);

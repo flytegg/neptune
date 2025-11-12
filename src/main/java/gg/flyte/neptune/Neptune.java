@@ -2,11 +2,11 @@ package gg.flyte.neptune;
 
 import gg.flyte.neptune.command.CommandDispatcher;
 import gg.flyte.neptune.command.CommandManager;
-import gg.flyte.neptune.util.Logger;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class Neptune {
-    public static final @NotNull Logger LOGGER = new Logger();
+    public static final @NotNull Logger LOGGER = LoggerFactory.getLogger(Neptune.class);
 
     private final @NotNull JDA jda;
     private final @NotNull CommandManager manager;
